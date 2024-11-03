@@ -18,7 +18,7 @@ boosting development efficiency
 - CMake
 
 ```shell
-mkdir build & build
+mkdir build & cd build
 cmake ..
 make
 ```
