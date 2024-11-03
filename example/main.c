@@ -1,6 +1,6 @@
 #include <gio/gio.h>
+#include <glib-object.h>
 #include <glib.h>
-#include <time.h>
 
 #include "joe_dbus.h"
 
@@ -8,6 +8,26 @@ static GMainLoop *main_loop = NULL;
 static GDBusConnection *dbus_connection = NULL;
 static JoeMessager *messager = NULL;
 static JoeCounter *counter = NULL;
+
+static gboolean handle_set_message(JoeMessager *object,
+                                   GDBusMethodInvocation *invocation,
+                                   const gchar *arg_Message, gpointer notused) {
+
+  /* Step1: deprecate old message */
+  joe_messager_emit_deprecated_message(object,
+                                       joe_messager_get_message(object));
+
+  /* Step2: set new message */
+  joe_messager_set_message(object, arg_Message);
+
+  /* Step3: increment counter */
+  joe_counter_set_count(counter, joe_counter_get_count(counter) + 1);
+
+  /* Step4: finish the call */
+  joe_messager_complete_set_message(object, invocation);
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
 
 int main(int argc, char *argv[]) {
 
@@ -45,7 +65,14 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  // g_signal_connect(message, "handle-set-message", GCallback(on_handle_set_message), NULL);
+  g_signal_connect(messager, "handle-set-message",
+                   G_CALLBACK(handle_set_message), NULL);
+
+  g_main_loop_run(main_loop);
+
+  g_object_unref(main_loop);
+  g_object_unref(messager);
+  g_object_unref(counter);
 
   return 0;
 }
