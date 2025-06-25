@@ -19,8 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build python3-pip libglib2.0-dev
-        pip3 install meson
+        sudo apt-get install -y ninja-build python3-pip libglib2.0-dev meson
 
     - name: Configure Meson
       run: meson setup builddir --buildtype ${{env.BUILD_TYPE}}
