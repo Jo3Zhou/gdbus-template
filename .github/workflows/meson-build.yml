@@ -1,0 +1,32 @@
+name: Meson on a single platform
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_TYPE: release  # Can be 'debug', 'release', 'debugoptimized', etc.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build python3-pip libglib2.0-dev
+        pip3 install meson
+
+    - name: Configure Meson
+      run: meson setup builddir --buildtype ${{env.BUILD_TYPE}}
+
+    - name: Build
+      run: ninja -C builddir
+
+    # - name: Test
+    #   run: meson test -C builddir --print-errorlogs
